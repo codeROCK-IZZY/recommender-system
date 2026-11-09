@@ -1,0 +1,37 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<title>Recommender System: evaluation</title><style>
+:root { --bg:#0b0e13; --panel:#121720; --line:#232c3a; --ink:#e8ecf2; --ink2:#9aa6b8; --s1:#3987e5; --s2:#d95926;
+  font-family: Inter, system-ui, sans-serif; }
+* { box-sizing: border-box; } body { margin:0; background:var(--bg); color:var(--ink); line-height:1.5; }
+main { max-width: 1180px; margin: 0 auto; padding: 40px 28px 64px; }
+h1 { font-size: 30px; letter-spacing:-0.02em; margin: 0 0 6px; } h2 { font-size: 19px; margin: 34px 0 14px; }
+.sub, .muted { color: var(--ink2); } .sub { margin: 0 0 24px; }
+.tiles { display:grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.tile { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px 18px; }
+.tile b { display:block; font-size: 28px; letter-spacing:-0.02em; } .tile span { color: var(--ink2); font-size: 13px; }
+table { width:100%; border-collapse: collapse; background:var(--panel); border:1px solid var(--line);
+  border-radius:12px; overflow:hidden; font-size: 13.5px; }
+th, td { padding: 8px 12px; border-bottom:1px solid var(--line); text-align:right; }
+th:first-child, td:first-child { text-align:left; } th { color: var(--ink2); font-weight:500; font-size:12px; }
+tr.best td { background: rgba(57,135,229,.10); font-weight: 600; }
+.bar { display:inline-block; height: 8px; border-radius: 0 4px 4px 0; vertical-align: middle; margin-right: 8px; }
+.b1 { background: var(--s1); } .b2 { background: var(--s2); }
+.cols { display:grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.legend span { margin-right: 18px; font-size: 13px; color: var(--ink2); }
+</style></head><body><main>
+<h1>Recommendations, measured honestly</h1>
+<p class="sub">228,390 interactions from 6,000 users on 2,000 items. Every model is tuned on a
+validation window and scored on a later test window: 5,755 users, 600 of them cold.</p>
+<div class="tiles"><div class="tile"><b>+29%</b><span>NDCG@20 of EASE + content fallback over popularity (CI of the difference +0.034 to +0.043)</span></div><div class="tile"><b>0.134</b><span>NDCG for cold-start users (EASE alone: 0.048)</span></div><div class="tile"><b>+65%</b><span>how much a random split flatters EASE versus a temporal one</span></div><div class="tile"><b>5.3 ms</b><span>p95 to serve one user&#x27;s top 10</span></div></div>
+<h2>Test window, top 20</h2>
+<p class="legend"><span><i class="bar b1" style="width:14px"></i>NDCG, all users</span>
+<span><i class="bar b2" style="width:14px"></i>NDCG, cold-start users</span></p>
+<table><tr><th>model</th><th>NDCG</th><th>NDCG, cold</th><th>recall</th><th>catalogue coverage</th>
+<th>avg popularity percentile</th></tr><tr class=""><td>popularity</td><td><span class="bar b1" style="width:93px"></span>0.1326</td><td><span class="bar b2" style="width:92px"></span>0.1313</td><td>0.2067</td><td>4.4%</td><td>0.99</td></tr><tr class=""><td>recent popular</td><td><span class="bar b1" style="width:93px"></span>0.1339</td><td><span class="bar b2" style="width:92px"></span>0.1325</td><td>0.2118</td><td>4.5%</td><td>0.99</td></tr><tr class=""><td>item-kNN</td><td><span class="bar b1" style="width:109px"></span>0.1559</td><td><span class="bar b2" style="width:34px"></span>0.0487</td><td>0.2361</td><td>20.8%</td><td>0.96</td></tr><tr class=""><td>EASE</td><td><span class="bar b1" style="width:113px"></span>0.1621</td><td><span class="bar b2" style="width:33px"></span>0.0477</td><td>0.2422</td><td>13.9%</td><td>0.95</td></tr><tr class=""><td>ALS</td><td><span class="bar b1" style="width:113px"></span>0.1616</td><td><span class="bar b2" style="width:33px"></span>0.0471</td><td>0.2434</td><td>10.2%</td><td>0.95</td></tr><tr class=""><td>BPR</td><td><span class="bar b1" style="width:104px"></span>0.1486</td><td><span class="bar b2" style="width:88px"></span>0.1265</td><td>0.2273</td><td>15.6%</td><td>0.99</td></tr><tr class="best"><td>EASE + content fallback</td><td><span class="bar b1" style="width:120px"></span>0.1710</td><td><span class="bar b2" style="width:93px"></span>0.1338</td><td>0.2559</td><td>20.8%</td><td>0.98</td></tr></table>
+<div class="cols"><div><h2>Why the split matters</h2>
+<table><tr><th></th><th>EASE NDCG</th><th>popularity NDCG</th></tr><tr><td>random 80/20 split</td><td>0.2671</td><td>0.1662</td></tr><tr><td>temporal split</td><td>0.1621</td><td>0.1326</td></tr></table>
+<p class="muted">A random split lets the model train on the future; the temporal split is what it will face.</p></div>
+<div><h2>Chosen on validation</h2><table><tr><th>model</th><th>hyperparameters</th></tr><tr><td>popularity</td><td>{}</td></tr><tr><td>recent popular</td><td>{&#x27;recent_days&#x27;: 21}</td></tr><tr><td>item-kNN</td><td>{&#x27;k&#x27;: 200}</td></tr><tr><td>EASE</td><td>{&#x27;lam&#x27;: 1000.0}</td></tr><tr><td>ALS</td><td>{&#x27;factors&#x27;: 64, &#x27;reg&#x27;: 300.0, &#x27;alpha&#x27;: 40.0, &#x27;iters&#x27;: 8}</td></tr><tr><td>BPR</td><td>{&#x27;factors&#x27;: 64, &#x27;lr&#x27;: 0.03, &#x27;epochs&#x27;: 30}</td></tr><tr><td>EASE + content fallback</td><td>{&#x27;lam&#x27;: 1000.0, &#x27;full_at&#x27;: 4}</td></tr></table></div></div>
+<p class="muted">3.9% of test interactions are with items nobody touched in training. Serving p50
+2.43 ms, p99 9.95 ms.</p>
+</main></body></html>
